@@ -1,0 +1,15 @@
+---
+- name: install iptables file
+  copy:
+    src: files/iptables-docker-user.rules
+    dest: /etc/iptables-docker-user.rules
+- name: define iptables service
+  copy:
+    src: files/iptables-docker-user.service
+    dest: /etc/systemd/system/iptables-docker-user.service
+- name: enable iptables service
+  systemd:
+    enabled: yes
+    state: started
+    daemon_reload: yes
+    name: iptables-docker-user.service

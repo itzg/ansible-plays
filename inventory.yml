@@ -1,0 +1,5 @@
+all:
+  children:
+    logservers:
+      hosts:
+        rack-log-1.itzg.me:
