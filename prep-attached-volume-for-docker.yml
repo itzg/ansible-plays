@@ -1,0 +1,18 @@
+- hosts: all
+  remote_user: root
+  vars_prompt:
+  - name: attached_vol_device
+    prompt: Volume device/partition
+    secret: no
+    default: xvdb1
+  tasks:
+  - name: setup attached volume filesystem
+    filesystem:
+      dev: "/dev/{{attached_vol_device}}"
+      fstype: ext4
+  - name: mount /var/lib/docker
+    mount:
+      fstype: ext4
+      path: /var/lib/docker
+      src: "/dev/{{attached_vol_device}}"
+      state: mounted

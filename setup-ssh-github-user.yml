@@ -1,0 +1,24 @@
+- hosts: all
+  remote_user: root
+  vars_prompt:
+    - name: user
+      prompt: "Github user ID"
+      private: no
+  tasks:
+  - name: setup adm sudoers
+    copy:
+      dest: /etc/sudoers.d/10-adm
+      content: |
+        %adm ALL = NOPASSWD:LOG_OUTPUT: ALL
+  - name: create user
+    user:
+      user: "{{user}}"
+      append: yes
+      groups:
+      - docker
+      - adm
+      shell: /bin/bash
+  - name: install ssh keys
+    authorized_key:
+      user: "{{user}}"
+      key: "https://github.com/{{user}}.keys"
