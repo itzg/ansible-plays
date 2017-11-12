@@ -14,6 +14,7 @@
 
 -A DOCKER-FORWARD-PUBLIC -p tcp --destination-port 80 -j RETURN
 -A DOCKER-FORWARD-PUBLIC -p tcp --destination-port 443 -j RETURN
+-A DOCKER-FORWARD-PUBLIC -p tcp --destination-port 2376 -m comment --comment "Docker Cloud Access" -j RETURN
 -A DOCKER-FORWARD-PUBLIC -j REJECT
 
 -A DOCKER-FORWARD-LOG -j REJECT
