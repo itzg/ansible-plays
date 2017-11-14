@@ -1,0 +1,11 @@
+- hosts: logservers
+  become: yes
+  tasks:
+  - include_role:
+      name: gelf
+- hosts: swarms
+  become: yes
+  serial: 1
+  tasks:
+  - include_role:
+      name: swarm

@@ -1,0 +1,84 @@
+version: '3.1'
+services:
+  # MongoDB: https://hub.docker.com/_/mongo/
+  mongo:
+    image: mongo:3
+    volumes:
+      - mongo_data:/data/db
+    deploy:
+      placement:
+        constraints:
+          - node.labels.storage == 1
+  # Elasticsearch: https://www.elastic.co/guide/en/elasticsearch/reference/5.5/docker.html
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:5.5.1
+    volumes:
+      - es_data:/usr/share/elasticsearch/data
+    deploy:
+      placement:
+        constraints:
+          - node.labels.storage == 1
+      resources:
+        limits:
+          memory: 1g
+    environment:
+      - http.host=0.0.0.0
+      - transport.host=localhost
+      - network.host=0.0.0.0
+      # Disable X-Pack security: https://www.elastic.co/guide/en/elasticsearch/reference/5.5/security-settings.html#general-security-settings
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+  # Graylog: https://hub.docker.com/r/graylog/graylog/
+  graylog:
+    image: itzg/graylog:swarm-transport-ip
+    volumes:
+      - graylog_journal:/usr/share/graylog/data/journal
+    deploy:
+      placement:
+        constraints:
+          - node.labels.storage == 1
+    environment:
+      - GRAYLOG_PASSWORD_SECRET
+      - GRAYLOG_ROOT_PASSWORD_SHA2
+      - GRAYLOG_WEB_ENDPOINT_URI=https://logs.itzg.me/api
+    ports:
+      # Graylog web interface and REST API
+      - 9000:9000
+      # Syslog TCP
+      - 514:514
+      # Syslog UDP
+      - 514:514/udp
+      # GELF TCP
+      - 12201:12201
+      # GELF UDP
+      - 12201:12201/udp
+      # plaintext
+      - 5555:5555
+  haproxy:
+    image: itzg/haproxy-lets
+    environment:
+      EMAIL:
+      DOMAINS: "${DOMAIN}@graylog:9000"
+      DOMAIN:
+    volumes:
+      - haproxy_certs:/certs
+      - haproxy_config:/config
+    ports:
+      - 80:80
+      - 443:443
+    deploy:
+      placement:
+        constraints:
+          - node.labels.storage == 1
+
+# Volumes for persisting data, see https://docs.docker.com/engine/admin/volumes/volumes/
+volumes:
+  mongo_data:
+  es_data:
+  graylog_journal:
+  haproxy_certs:
+  haproxy_config:

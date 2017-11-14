@@ -1,0 +1,15 @@
+---
+- name: install docker gelf logging config
+  template:
+    dest: /etc/docker/daemon.json
+    src: templates/docker-daemon.json.j2
+  register: docker_daemon_config
+- name: update docker service
+  when: docker_daemon_config.changed
+  service:
+    name: docker
+    state: restarted
+- name: wait for docker to settle
+  when: docker_daemon_config.changed
+  wait_for:
+    timeout: 30

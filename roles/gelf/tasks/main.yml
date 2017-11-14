@@ -3,13 +3,21 @@
   copy:
     src: files/iptables-docker-user.rules
     dest: /etc/iptables-docker-user.rules
+  register: iptables_file
 - name: define iptables service
   copy:
     src: files/iptables-docker-user.service
     dest: /etc/systemd/system/iptables-docker-user.service
+  register: iptables_service_definition
 - name: enable iptables service
   systemd:
     enabled: yes
-    state: started
     daemon_reload: yes
     name: iptables-docker-user.service
+  register: iptables_service_enable
+- name: run iptables service
+  systemd:
+    enabled: yes
+    state: started
+    name: iptables-docker-user.service
+  when: iptables_file.changed or iptables_service_definition.changed or iptables_service_enable.changed

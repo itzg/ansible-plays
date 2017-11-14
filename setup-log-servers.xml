@@ -1,5 +1,0 @@
-- hosts: logservers
-  become: yes
-  tasks:
-  - include_role:
-      name: gelf
