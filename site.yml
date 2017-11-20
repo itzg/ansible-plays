@@ -2,10 +2,15 @@
   become: yes
   tasks:
   - include_role:
-      name: gelf
+      name: telemetry
 - hosts: swarms
   become: yes
   serial: 1
   tasks:
   - include_role:
       name: swarm
+- hosts: all
+  become: yes
+  tasks:
+  - include_role:
+      name: telegraf

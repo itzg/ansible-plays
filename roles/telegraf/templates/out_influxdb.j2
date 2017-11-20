@@ -1,0 +1,8 @@
+[[outputs.influxdb]]
+  urls = ["{{ influxdb_url }}"] # required
+  database = "telegraf" # required
+
+  retention_policy = ""
+  write_consistency = "any"
+
+  timeout = "5s"

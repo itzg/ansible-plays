@@ -1,0 +1,28 @@
+- name: install apt key
+  apt_key:
+    url: https://repos.influxdata.com/influxdb.key
+- name: add apt source
+  apt_repository:
+    repo: "deb https://repos.influxdata.com/{{ ansible_distribution | lower }} {{ansible_distribution_release}} stable"
+- name: install telegraf
+  package:
+    name: telegraf
+- name: install configs
+  template:
+    src: "{{item}}.j2"
+    dest: "/etc/telegraf/telegraf.d/{{item}}.conf"
+  with_items:
+    - out_influxdb
+    - out_graylog
+    - in_docker
+  register: configs_result
+- name: enable telegraf access to docker
+  user:
+    name: telegraf
+    append: yes
+    groups: docker
+- name: restart service
+  when: configs_result.changed
+  service:
+    name: telegraf
+    state: restarted

@@ -1,2 +1,1 @@
-gelf_host: log-sink.int.itzg.me
 gelf_udp_port: 12201

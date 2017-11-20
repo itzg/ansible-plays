@@ -1,4 +1,7 @@
 all:
+  vars:
+    graylog_host: log-sink.int.itzg.me
+    influxdb_url: http://log-sink.int.itzg.me:8086
   children:
     logservers:
       hosts:

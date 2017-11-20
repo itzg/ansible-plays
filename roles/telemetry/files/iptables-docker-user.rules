@@ -20,6 +20,7 @@
 -A DOCKER-FORWARD-LOG -p tcp --destination-port 5555 -j RETURN
 -A DOCKER-FORWARD-LOG -p udp --destination-port 12201 -j RETURN
 -A DOCKER-FORWARD-LOG -p tcp --destination-port 12201 -j RETURN
+-A DOCKER-FORWARD-LOG -p tcp --destination-port 8086 -m comment --comment "InfluxDB" -j RETURN
 -A DOCKER-FORWARD-LOG -j REJECT
 
 COMMIT
