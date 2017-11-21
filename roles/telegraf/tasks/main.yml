@@ -13,16 +13,22 @@
     dest: "/etc/telegraf/telegraf.d/{{item}}.conf"
   with_items:
     - out_influxdb
-    - out_graylog
     - in_docker
   register: configs_result
+- name: remove configs
+  file:
+    path: "/etc/telegraf/telegraf.d/{{item}}.conf"
+    state: absent
+  with_items:
+    - out_graylog
+  register: configs_rm_result
 - name: enable telegraf access to docker
   user:
     name: telegraf
     append: yes
     groups: docker
 - name: restart service
-  when: configs_result.changed
+  when: configs_result.changed or configs_rm_result.changed
   service:
     name: telegraf
     state: restarted
