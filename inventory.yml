@@ -6,6 +6,8 @@ all:
     logservers:
       hosts:
         rack-log-1.itzg.me:
+        rack-log-2.itzg.me:
+        rack-log-3.itzg.me:
     swarms:
       hosts:
         rack1.itzg.me:

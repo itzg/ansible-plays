@@ -1,3 +1,16 @@
+- hosts: all
+  become: yes
+  tasks:
+  - name: setup purging of old kernels
+    package:
+      name: byobu
+      state: latest
+- hosts: all
+  become: yes
+  serial: 1
+  tasks:
+  - include_role:
+      name: docker
 - hosts: logservers
   become: yes
   tasks:

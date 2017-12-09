@@ -15,10 +15,12 @@
       user: "{{user}}"
       append: yes
       groups:
-      - docker
       - adm
       shell: /bin/bash
   - name: install ssh keys
     authorized_key:
       user: "{{user}}"
       key: "https://github.com/{{user}}.keys"
+  - name: upgrade all packages
+    apt:
+      upgrade: yes

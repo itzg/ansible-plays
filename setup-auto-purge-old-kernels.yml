@@ -1,7 +1,1 @@
 ---
-- hosts: all
-  tasks:
-  - name: setup package
-    package:
-      name: byobu
-      state: latest

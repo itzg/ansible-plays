@@ -9,6 +9,9 @@ services:
       placement:
         constraints:
           - node.labels.storage == 1
+      resources:
+        limits:
+          memory: 128m
   # Elasticsearch: https://www.elastic.co/guide/en/elasticsearch/reference/5.5/docker.html
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:5.5.1
@@ -28,10 +31,6 @@ services:
       # Disable X-Pack security: https://www.elastic.co/guide/en/elasticsearch/reference/5.5/security-settings.html#general-security-settings
       - xpack.security.enabled=false
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
   # Graylog: https://hub.docker.com/r/graylog/graylog/
   graylog:
     image: itzg/graylog:swarm-transport-ip
@@ -41,8 +40,13 @@ services:
       placement:
         constraints:
           - node.labels.storage == 1
+      resources:
+        limits:
+          memory: 756m
     env_file:
       - graylog.env
+    environment:
+      GRAYLOG_SERVER_JAVA_OPTS: -Xmx512m
     ports:
       # Graylog web interface and REST API
       - 9000:9000
@@ -68,6 +72,9 @@ services:
       placement:
         constraints:
           - node.labels.storage == 1
+      resources:
+        limits:
+          memory: 756m
   chronograf:
     # NOTE: internally binds to 8888
     image: chronograf:1.3.10
@@ -76,6 +83,13 @@ services:
       - influx.env
     volumes:
       - chronograf_data:/var/lib/chronograf
+    deploy:
+      placement:
+        constraints:
+          - node.labels.storage == 1
+      resources:
+        limits:
+          memory: 128m
 #  grafana:
 #    image: grafana/grafana:4.6.2
 #    env_file:
@@ -102,6 +116,9 @@ services:
       placement:
         constraints:
           - node.labels.storage == 1
+      resources:
+        limits:
+          memory: 128m
 
 # Volumes for persisting data, see https://docs.docker.com/engine/admin/volumes/volumes/
 volumes:

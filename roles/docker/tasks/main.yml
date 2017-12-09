@@ -1,0 +1,23 @@
+- name: install docker apt key
+  apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    id: 0EBFCD88
+- name: install docker apt repo
+  apt_repository:
+    repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+    filename: docker-ce
+- name: install docker
+  package:
+    name: docker-ce
+    state: latest
+  register: docker_pkg
+- name: wait for updated docker
+  when: docker_pkg.changed
+  wait_for:
+    timeout: 30
+- name: add user to docker group
+  user:
+    name: "{{item}}"
+    groups: docker
+    append: yes
+  with_items: "{{docker_users}}"
