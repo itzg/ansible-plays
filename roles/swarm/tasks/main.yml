@@ -1,5 +1,5 @@
 ---
-- name: install docker gelf logging config
+- name: install docker daemon config
   template:
     dest: /etc/docker/daemon.json
     src: templates/docker-daemon.json.j2
