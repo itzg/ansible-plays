@@ -1,0 +1,9 @@
+- name: allow default apps
+  ufw:
+    rule: allow
+    name: "{{item}}"
+  with_items: "{{firewalled_allowed_apps}}"
+- name: enable
+  ufw:
+    state: enabled
+    policy: "{{firewalled_default_policy}}"

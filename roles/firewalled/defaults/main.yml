@@ -1,0 +1,5 @@
+---
+
+firewalled_default_policy: deny
+firewalled_allowed_apps:
+  - OpenSSH

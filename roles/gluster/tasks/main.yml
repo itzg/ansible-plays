@@ -1,0 +1,37 @@
+---
+- name: allow tcp ports
+  ufw:
+    rule: allow
+    port: "{{item}}"
+    interface: "{{gluster_interface}}"
+    direction: in
+    proto: tcp
+  with_items:
+    - 111
+    - 2049
+    - 24007
+    - 49152
+- name: allow udp ports
+  ufw:
+    rule: allow
+    port: "{{item}}"
+    interface: "{{gluster_interface}}"
+    direction: in
+    proto: udp
+  with_items:
+    - 111
+- name: create brick directory
+  file:
+    state: directory
+    name: "{{gluster_bricks_dir}}/{{item.name}}"
+  with_items: "{{gluster_volumes}}"
+- name: create volume
+  when: inventory_hostname == ansible_play_hosts[0]
+  gluster_volume:
+    state: present
+    name: "{{item.name}}"
+    replicas: "{{item.replicas}}"
+    brick: "{{gluster_bricks_dir}}/{{item.name}}"
+    host: "{{int_hostname}}"
+    cluster: "{{ groups['gluster']|map('extract', hostvars, 'int_hostname')|list }}"
+  with_items: "{{gluster_volumes}}"
