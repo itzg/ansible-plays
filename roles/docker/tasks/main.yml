@@ -21,3 +21,31 @@
     groups: docker
     append: yes
   with_items: "{{docker_users}}"
+- name: allow docker swarm cluster tcp port
+  ufw:
+    comment: swarm cluster
+    direction: in
+    interface: eth1
+    proto: tcp
+    rule: allow
+    port: "{{item}}"
+  with_items:
+    - 2377
+    - 7946
+- name: allow docker swarm cluster udp port
+  ufw:
+    comment: swarm cluster
+    direction: in
+    interface: eth1
+    proto: udp
+    rule: allow
+    port: "{{item}}"
+  with_items:
+    - 7946
+    - 4789
+- name: allow docker swarm manager port
+  ufw:
+    comment: swarm manager
+    proto: tcp
+    rule: allow
+    port: 2376
