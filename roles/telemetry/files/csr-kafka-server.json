@@ -1,0 +1,20 @@
+{
+  "CN": "server",
+  "hosts": [
+    "kafka.itzg.me",
+    "localhost"
+  ],
+  "key": {
+    "algo": "rsa",
+    "size": 2048
+  },
+  "names": [
+    {
+      "C": "US",
+      "L": "Allen",
+      "O": "itzg.me",
+      "OU": "cluster",
+      "ST": "TX"
+    }
+  ]
+}

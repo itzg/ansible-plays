@@ -1,8 +1,8 @@
 version: '3.4'
 services:
-  # Elasticsearch: https://www.elastic.co/guide/en/elasticsearch/reference/5.5/docker.html
+
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:6.1.1
+    image: docker.elastic.co/elasticsearch/elasticsearch-oss:${ELASTIC_VERSION:-6.1.3}
     volumes:
       - es_data:/usr/share/elasticsearch/data
     deploy:
@@ -16,33 +16,14 @@ services:
       - http.host=0.0.0.0
       - transport.host=localhost
       - network.host=0.0.0.0
-      # Disable X-Pack security: https://www.elastic.co/guide/en/elasticsearch/reference/5.5/security-settings.html#general-security-settings
-      - xpack.security.enabled=false
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "ES_JAVA_OPTS=-Xms512m -Xmx756m"
   logstash:
-    image: docker.elastic.co/logstash/logstash-oss:6.1.1
+    image: docker.elastic.co/logstash/logstash-oss:${ELASTIC_VERSION:-6.1.3}
     configs:
-      - source: logstash_2
-        target: /usr/share/logstash/pipeline/logstash.conf
-    environment:
-      LS_JAVA_OPTS: -Xms256m -Xmx256m
-    command: --debug
-    ports:
-      - 5555:5555
-      - 5550:5550
-      - 12201:12201
-      - 12201:12201/udp
-      - 9600:9600
-    secrets:
-      - ca.pem
-      - logstash-server-key.pem
-      - logstash-server.pem
-    deploy:
-      resources:
-        limits:
-          memory: 512m
+      - source: logstash_3
+        target: /usr/share/logstash/pipeline/main.conf
   kibana:
-    image: docker.elastic.co/kibana/kibana-oss:6.1.1
+    image: docker.elastic.co/kibana/kibana-oss:${ELASTIC_VERSION:-6.1.3}
   kibana_auth:
     image: a5huynh/oauth2_proxy
     env_file:
@@ -54,6 +35,7 @@ services:
       --email-domain=*
       -provider=github
       -github-org=itzgAndEnenbee
+
   influxdb:
     image: influxdb:1.4.2
     ports:
@@ -81,7 +63,7 @@ services:
       --allow-all
     secrets:
       # Can't use default /var/run/secrets since ghostunnel image is based on alpine
-      - source: ca.pem
+      - source: logstash-ca.pem
         target: /certs/ca.pem
       - source: logstash-server-bundle.pem
         target: /certs/logstash-server-bundle.pem
@@ -120,6 +102,85 @@ services:
         limits:
           memory: 128m
 
+  zk-1: &zk
+    image: confluentinc/cp-zookeeper:4.0.0
+    env_file:
+      - zk-common.env
+    environment:
+      ZOOKEEPER_SERVER_ID: 1
+      ZOOKEEPER_SERVERS: 0.0.0.0:2888:3888;zk-2:2888:3888;zk-3:2888:3888
+    volumes:
+      - zk-1:/var/lib/zookeeper/data
+  zk-2:
+    <<: *zk
+    environment:
+      ZOOKEEPER_SERVER_ID: 2
+      ZOOKEEPER_SERVERS: zk-1:2888:3888;0.0.0.0:2888:3888;zk-3:2888:3888
+    volumes:
+      - zk-2:/var/lib/zookeeper/data
+  zk-3:
+    <<: *zk
+    environment:
+      ZOOKEEPER_SERVER_ID: 3
+      ZOOKEEPER_SERVERS: zk-1:2888:3888;zk-2:2888:3888;0.0.0.0:2888:3888
+    volumes:
+      - zk-3:/var/lib/zookeeper/data
+
+  kafka-1: &kafka
+    image: confluentinc/cp-kafka:4.0.0
+    env_file:
+      - kafka-common.env
+    environment:
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka-1:9192,SSL://kafka.itzg.me:5092
+    ports:
+      - 5092:9092
+    volumes:
+      - kafka-1:/var/lib/kafka/data
+    secrets:
+      - source: ca-trust-store.jks
+        target: /etc/kafka/secrets/ca-trust-store.jks
+      - source: ca-trust-store.cred
+        target: /etc/kafka/secrets/ca-trust-store.cred
+      - source: kafka-server-keystore.p12
+        target: /etc/kafka/secrets/kafka-server-keystore.p12
+      - source: kafka-server-keystore.cred
+        target: /etc/kafka/secrets/kafka-server-keystore.cred
+  kafka-2:
+    <<: *kafka
+    environment:
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka-2:9192,SSL://kafka.itzg.me:5093
+    ports:
+      - 5093:9092
+    volumes:
+      - kafka-2:/var/lib/kafka/data
+  kafka-3:
+    <<: *kafka
+    environment:
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka-3:9192,SSL://kafka.itzg.me:5094
+    ports:
+      - 5094:9092
+    volumes:
+      - kafka-3:/var/lib/kafka/data
+
+  kafka_manager_auth:
+    image: a5huynh/oauth2_proxy
+    env_file:
+      - kafka_manager_auth.env
+    command: >
+      --upstream="http://kafka_manager:9000"
+      --http-address="0.0.0.0:4180"
+      --redirect-url="https://kafka-manager.itzg.me/oauth2/callback"
+      --email-domain=*
+      -provider=github
+      -github-org=itzgAndEnenbee
+
+  kafka_manager:
+    image: sheepkiller/kafka-manager
+    environment:
+      ZK_HOSTS: zk-1:2181,zk-2:2181,zk-3:2181
+      JMX_PORT: 9181
+      APPLICATION_SECRET: letmein
+
 # Volumes for persisting data, see https://docs.docker.com/engine/admin/volumes/volumes/
 volumes:
   es_data:
@@ -127,17 +188,27 @@ volumes:
   haproxy_config:
   influxdb_data:
   chronograf_data:
+  zk-1:
+  zk-2:
+  zk-3:
+  kafka-1:
+  kafka-2:
+  kafka-3:
 
 configs:
-  logstash_2:
+  logstash_3:
     file: ./logstash.conf
 
 secrets:
-  ca.pem:
-    file: certs/ca.pem
-  logstash-server-key.pem:
-    file: certs/logstash-server-key.pem
-  logstash-server.pem:
-    file: certs/logstash-server.pem
+  logstash-ca.pem:
+    file: certs/logstash-ca.pem
   logstash-server-bundle.pem:
     file: certs/logstash-server-bundle.pem
+  ca-trust-store.jks:
+    file: certs/ca-trust-store.jks
+  kafka-server-keystore.p12:
+    file: certs/kafka-server-keystore.p12
+  ca-trust-store.cred:
+    external: true
+  kafka-server-keystore.cred:
+    external: true
