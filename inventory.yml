@@ -1,32 +1,13 @@
 all:
   vars:
-    graylog_host: log-sink.int.itzg.me
-    influxdb_url: http://log-sink.int.itzg.me:8086
+    influxdb_url: http://localhost:8086
     docker_users:
       - itzg
   children:
-    logservers:
-      hosts:
-        rack-log-1.itzg.me:
-        rack-log-2.itzg.me:
-        rack-log-3.itzg.me:
-    gluster:
-      vars:
-        gluster_bricks_dir: /var/lib/docker/gluster
-        gluster_interface: eth1
-        gluster_volumes:
-          - name: graylog_journal
-            replicas: 3
-          - name: es_data_1
-            replicas: 3
-      hosts:
-        rack-log-1.itzg.me:
-          int_hostname: rack-log-1.int.itzg.me
-        rack-log-2.itzg.me:
-          int_hostname: rack-log-2.int.itzg.me
-        rack-log-3.itzg.me:
-          int_hostname: rack-log-3.int.itzg.me
     swarms:
       hosts:
         rack1.itzg.me:
         rack2.itzg.me:
+    home:
+      hosts:
+        nuc:

@@ -12,7 +12,8 @@
     src: "{{item}}.j2"
     dest: "/etc/telegraf/telegraf.d/{{item}}.conf"
   with_items:
-    - out_influxdb
+    - agent
+    - out_tcp
     - in_docker
   register: configs_result
 - name: remove configs
@@ -21,6 +22,7 @@
     state: absent
   with_items:
     - out_graylog
+    - out_influxdb
   register: configs_rm_result
 - name: enable telegraf access to docker
   user:

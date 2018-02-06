@@ -1,1 +1,2 @@
 influxdb_url: http://log-sink.int.itzg.me:8086
+telegraf_agent_interval: 60s
